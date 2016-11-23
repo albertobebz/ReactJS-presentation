@@ -115,6 +115,11 @@ body {
     padding: 20px 10px 10px 10px;
   }
 
+  .player-name p {
+    margin: 0;
+    padding: 0;
+  }
+
   .player-score {
     width: 190px;
     background: blue;

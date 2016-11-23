@@ -1,269 +1,130 @@
-const PLAYERS = [
-  {
-    name: "Jim Hoskins",
-    score: 31,
-    id: 1
-  },
-  {
-    name: "Andrew Chalkley",
-    score: 35,
-    id: 2
-  },
-  {
-    name: "Alena Holligan",
-    score: 42,
-    id: 3
-  }
+// JSX is a extension of JavaScript language that allows us to use an XML style syntax to build our React.createElement calls
+// We need a compilere to transform JSX into JavaScript code, in this case we use Babel
+
+/////
+// we define a component and then this will be injected into the render function
+/////
+
+var PLAYERS = [
+    {
+        name: "jim",
+        score: 32,
+        id: 1
+    },
+    {
+        name: "bill",
+        score: 22,
+        id: 2
+    },
+    {
+        name: "tim",
+        score: 1,
+        id: 3
+    }
 ]
-// This should be a random number that does not conflict with
-// `player.id` defined in PLAYERS
-let nextId = 4
 
-class Stopwatch extends React.Component {
-  constructor(props) {
-    super(props)
-    // Set default state
-    this.state = {
-      running: false,
-      elapsedTime: 0,
-      previousTime: 0
-    }
-    // Bind custom methods
-    this._onTick = this._onTick.bind(this)
-    this._onStart = this._onStart.bind(this)
-    this._onStop = this._onStop.bind(this)
-    this._onReset = this._onReset.bind(this)
-  }
-
-  componentDidMount() {
-    this.interval = setInterval(this._onTick, 100)
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.interval)
-  }
-
-  _onTick() {
-    if (this.state.running) {
-      const now = Date.now()
-      this.setState({
-        previousTime: now,
-        elapsedTime: this.state.elapsedTime + (now - this.state.previousTime)
-      })
-    }
-  }
-
-  _onStart() {
-    this.setState({
-      running: true,
-      previousTime: Date.now()
-    })
-  }
-
-  _onStop() {
-    this.setState({ running: false })
-  }
-
-  _onReset() {
-    this.setState({
-      elapsedTime: 0,
-      previousTime: Date.now()
-    })
-  }
-
-  render() {
-    const seconds = Math.floor(this.state.elapsedTime / 1000)
-
-    return (
-      <div className="stopwatch">
-        <h2>Stopwatch</h2>
-        <div className="stopwatch-time">{seconds}</div>
-        { this.state.running
-          ? <button onClick={this._onStop}>Stop</button>
-          : <button onClick={this._onStart}>Start</button>
-        }
-        <button onClick={this._onReset}>Reset</button>
-      </div>
-    );
-  }
-}
-
-class AddPlayerForm extends React.Component {
-  constructor(props) {
-    super(props)
-    // Set default state
-    this.state = { name: '' }
-    // Bind custom methods
-    this._onNameChange = this._onNameChange.bind(this)
-    this._onSubmit = this._onSubmit.bind(this)
-  }
-
-  _onNameChange(e) {
-    this.setState({name: e.target.value})
-  }
-
-  _onSubmit(e) {
-    e.preventDefault()
-    this.props.onAdd(this.state.name)
-    this.setState({name: ''})
-  }
-
-  render () {
-    return (
-      <div className="add-player-form">
-        <form onSubmit={this._onSubmit}>
-          <input type="text" value={this.state.name} onChange={this._onNameChange} />
-          <input type="submit" value="Add Player" />
-        </form>
-      </div>
-    )
-  }
-}
-// Define proptypes fpr a stateless component
-AddPlayerForm.propTypes = {
-  onAdd: React.PropTypes.func.isRequired
-}
-
-// Es6 Stateless component
-const Stats = (props) => {
-  const totalPlayers = props.players.length
-  let totalPoints = props.players.reduce((total, player) => total + player.score, 0)
-
-  return (
-    <table className="stats">
-      <tbody>
-        <tr>
-          <td>Players:</td>
-          <td>{totalPlayers}</td>
-        </tr>
-        <tr>
-          <td>Total Points:</td>
-          <td>{totalPoints}</td>
-        </tr>
-      </tbody>
-    </table>
-  )
-}
-// Define proptypes fpr a stateless component
-Stats.propTypes = {
-  players: React.PropTypes.array.isRequired
-};
-
-// Es6 Stateless component
-const Header = (props) => (
-  <div className="header">
-    <Stats players={props.players}/>
-    <h1>{props.title}</h1>
-    <Stopwatch />
-  </div>
-)
-// Define proptypes fpr a stateless component
-Header.propTypes = {
-  title: React.PropTypes.string.isRequired,
-  players: React.PropTypes.array.isRequired
-};
-
-// Es6 Stateless component
-const Counter = (props) => (
-  <div className="counter">
-    <button className="counter-action decrement" onClick={function() {props.onChange(-1);}} > - </button>
-    <div className="counter-score"> {props.score} </div>
-    <button className="counter-action increment" onClick={function() {props.onChange(1);}}> + </button>
-  </div>
-)
-// Define proptypes fpr a stateless component
-Counter.propTypes = {
-  score: React.PropTypes.number.isRequired,
-  onChange: React.PropTypes.func.isRequired
-}
-
-// Es6 Stateless component
-const Player = (props) => (
-  <div className="player">
-    <div className="player-name">
-      <a className="remove-player" onClick={props.onRemove}>✖</a>
-      {props.name}
-    </div>
-    <div className="player-score">
-      <Counter score={props.score} onChange={props.onScoreChange} />
-    </div>
-  </div>
-)
-// Define proptypes fpr a stateless component
-Player.propTypes = {
-  name: React.PropTypes.string.isRequired,
-  score: React.PropTypes.number.isRequired,
-  onScoreChange: React.PropTypes.func.isRequired,
-  onRemove: React.PropTypes.func.isRequired
-};
-
-class Application extends React.Component {
-  constructor(props) {
-    super(props)
-    // Set the initial state
-    this.state = { players: this.props.initialPlayers }
-    // Bind custom methods
-    this._onScoreChange = this._onScoreChange.bind(this)
-    this._onPlayerAdd = this._onPlayerAdd.bind(this)
-    this._onRemovePlayer = this._onRemovePlayer.bind(this)
-  }
-
-  _onScoreChange (index, delta) {
-    this.state.players[index].score += delta
-    this.setState(this.state)
-  }
-
-  _onPlayerAdd (name) {
-    this.state.players.push({
-      name: name,
-      score: 0,
-      id: nextId
-    });
-    this.setState(this.state)
-    nextId += 1
-  }
-
-  _onRemovePlayer (index) {
-    this.state.players.splice(index, 1)
-    this.setState(this.state)
-  }
-
-  render () {
-    return (
-      <div className="scoreboard">
-        <Header title={this.props.title} players={this.state.players} />
-
-        <div className="players">
-          {this.state.players.map((player, index) =>
-            <Player
-              onScoreChange={(delta) => this._onScoreChange(index, delta)}
-              onRemove={() => this._onRemovePlayer(index)}
-              name={player.name}
-              score={player.score}
-              key={player.id} />
-          )}
+// HEADER is a STATELESS COMPONENT
+function Header(props) {
+    return(
+        <div className="header">
+            <h1>{props.title}</h1>
         </div>
-        <AddPlayerForm onAdd={this._onPlayerAdd} />
-      </div>
     );
-  }
 }
 
-Application.propTypes = {
-  title: React.PropTypes.string,
-  initialPlayers: React.PropTypes.arrayOf(React.PropTypes.shape({
-    name: React.PropTypes.string.isRequired,
-    score: React.PropTypes.number.isRequired,
-    id: React.PropTypes.number.isRequired
-  })).isRequired
+Header.propTypes = {
+    title: React.PropTypes.string.isRequired
+};
+
+// COUNTER is a COMPONENT CLASS --> this for adding state to our component
+var Counter = React.createClass({
+    //for component class we pass the propTypes inside it
+    propTypes: {
+        initialScore: React.PropTypes.number.isRequired
+    },
+
+    // getInitialState is a method build in React, used in Component Class
+    getInitialState: function(){
+        return {
+            score: this.props.initialScore
+        }
+    },
+
+    // we use setState property to update the value of our state, in this case "score"
+    incrementScore: function(){
+        // "this.setState" must be called in order to tell React to render itself
+        this.setState({
+            score: (this.state.score + 1)
+        })
+    },
+
+    // we use setState property to update the value of our state, in this case "score"
+    decrementScore: function(){
+        // "this.setState" must be called in order to tell React to render itself
+        this.setState({
+            score: (this.state.score -1)
+        })
+    },
+
+    // in the render method we fetch the score value using "this.state.score"
+    render: function(){
+        return (
+            <div className="counter">
+                <button className="counter-action decrement" onClick={this.decrementScore}> - </button>
+                <div className="counter-score"> {this.state.score} </div>
+                <button className="counter-action increment" onClick={this.incrementScore}> + </button>
+            </div>
+        )
+    }
+});
+
+// PLAYER is a STATELESS COMPONENT
+function Player(props) {
+    return (
+        <div className="player">
+            <div className="player-name">
+                <p>{props.name}</p>
+            </div>
+            <div className="player-score">
+                <Counter initialScore={props.score}/>
+            </div>
+        </div>
+    );
 }
+
+Player.propTypes = {
+    name: React.PropTypes.string.isRequired,
+    score: React.PropTypes.number.isRequired
+};
+
+// APPLICATION is a STATELESS COMPONENT
+function Application(props) {
+    return(
+        <div className="scoreboard">
+            <Header title={props.title}/>
+            <div className="players">
+                {props.players.map(function(player){
+                    return <Player name={player.name} score={player.score} key={player.id} />
+                })}
+            </div>
+        </div>
+    );
+}
+
+// Each keys in the propTypes object are the property the component can take (e.i title)
+// this is useful for document the compnent and help for debugging
+Application.propTypes = {
+    title: React.PropTypes.string,
+    players: React.PropTypes.arrayOf(React.PropTypes.shape({
+        name: React.PropTypes.string.isRequired,
+        score: React.PropTypes.number.isRequired,
+        id: React.PropTypes.number.isRequired
+    })).isRequired
+};
 
 Application.defaultProps = {
-  title: "Scoreboard"
+    title: "Scoreboard"
 }
 
-// Load the app into the DOM
-ReactDOM.render(
-  <Application initialPlayers={PLAYERS} />,
-  document.getElementById('container');
-)
+// ReactDOM.render is a function we use to render specific HTML tag into a selected element
+ReactDOM.render(<Application players={PLAYERS}/>,document.getElementById("container"));
