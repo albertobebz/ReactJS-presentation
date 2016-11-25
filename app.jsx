@@ -23,62 +23,66 @@ var PLAYERS = [
     }
 ]
 
-// HEADER is a STATELESS COMPONENT
+function Stats(props) {
+    var totalPlayers = props.players.length;
+    var totalPoints = props.players.reduce(function(total, player){
+        return total + player.score;
+    }, 0);
+
+    return (
+        <table className="stats">
+            <tbody>
+                <tr>
+                    <td>Players:</td>
+                    <td>{totalPlayers}</td>
+                </tr>
+                <tr>
+                    <td>Total points:</td>
+                    <td>{totalPoints}</td>
+                </tr>
+            </tbody>
+        </table>
+    )
+}
+
+Stats.propTypes = {
+    players: React.PropTypes.array.isRequired
+};
+
+// HEADER is a STATELESS FUNCTIONAL COMPONENT
 function Header(props) {
     return(
         <div className="header">
+            <Stats players={props.players}/>
             <h1>{props.title}</h1>
         </div>
     );
 }
 
+// Each keys in the propTypes object are the property the component can take (e.i title)
+// this is useful for document the compnent and help for debugging
 Header.propTypes = {
-    title: React.PropTypes.string.isRequired
+    title: React.PropTypes.string.isRequired,
+    players: React.PropTypes.array.isRequired
 };
 
-// COUNTER is a COMPONENT CLASS --> this for adding state to our component
-var Counter = React.createClass({
-    //for component class we pass the propTypes inside it
-    propTypes: {
-        initialScore: React.PropTypes.number.isRequired
-    },
+// COUNTER is a STATELESS FUNCTIONAL COMPONENT
+function Counter(props) {
+    return (
+        <div className="counter">
+            <button className="counter-action decrement" onClick={function() {props.onChange(-1);}} > - </button>
+            <div className="counter-score"> {props.score} </div>
+            <button className="counter-action increment" onClick={function() {props.onChange(+1);}} > + </button>
+        </div>
+    )
+}
 
-    // getInitialState is a method build in React, used in Component Class
-    getInitialState: function(){
-        return {
-            score: this.props.initialScore
-        }
-    },
+Counter.propTypes = {
+    score: React.PropTypes.number.isRequired,
+    onChange: React.PropTypes.func.isRequired
+}
 
-    // we use setState property to update the value of our state, in this case "score"
-    incrementScore: function(){
-        // "this.setState" must be called in order to tell React to render itself
-        this.setState({
-            score: (this.state.score + 1)
-        })
-    },
-
-    // we use setState property to update the value of our state, in this case "score"
-    decrementScore: function(){
-        // "this.setState" must be called in order to tell React to render itself
-        this.setState({
-            score: (this.state.score -1)
-        })
-    },
-
-    // in the render method we fetch the score value using "this.state.score"
-    render: function(){
-        return (
-            <div className="counter">
-                <button className="counter-action decrement" onClick={this.decrementScore}> - </button>
-                <div className="counter-score"> {this.state.score} </div>
-                <button className="counter-action increment" onClick={this.incrementScore}> + </button>
-            </div>
-        )
-    }
-});
-
-// PLAYER is a STATELESS COMPONENT
+// PLAYER is a STATELESS FUNCTIONAL COMPONENT
 function Player(props) {
     return (
         <div className="player">
@@ -86,7 +90,7 @@ function Player(props) {
                 <p>{props.name}</p>
             </div>
             <div className="player-score">
-                <Counter initialScore={props.score}/>
+                <Counter score={props.score} onChange={props.onScoreChange}/>
             </div>
         </div>
     );
@@ -94,37 +98,58 @@ function Player(props) {
 
 Player.propTypes = {
     name: React.PropTypes.string.isRequired,
-    score: React.PropTypes.number.isRequired
+    score: React.PropTypes.number.isRequired,
+    onScoreChange: React.PropTypes.func.isRequired
 };
 
-// APPLICATION is a STATELESS COMPONENT
-function Application(props) {
-    return(
-        <div className="scoreboard">
-            <Header title={props.title}/>
-            <div className="players">
-                {props.players.map(function(player){
-                    return <Player name={player.name} score={player.score} key={player.id} />
-                })}
+// APPLICATION is a COMPONENT CLASS --> this for adding state to our component
+var Application = React.createClass({
+    propTypes: {
+        title: React.PropTypes.string,
+        initialPlayers: React.PropTypes.arrayOf(React.PropTypes.shape({
+            name: React.PropTypes.string.isRequired,
+            score: React.PropTypes.number.isRequired,
+            id: React.PropTypes.number.isRequired
+        })).isRequired
+    },
+
+    getDefaultProps: function(){
+        return {
+            title: "Scoreboard"
+        }
+    },
+
+    getInitialState: function(){
+        return {
+            players: this.props.initialPlayers
+        }
+    },
+
+    onScoreChange: function(index, delta){
+        console.log("onScoreChange", index, delta);
+        this.state.players[index].score += delta;
+        this.setState(this.state);
+    },
+
+    render: function(){
+        return (
+            <div className="scoreboard">
+                <Header title={this.props.title} players={this.state.players}/>
+                <div className="players">
+                    {this.state.players.map(function(player, index){
+                        return (
+                            <Player
+                                onScoreChange={function(delta) {this.onScoreChange(index, delta)}.bind(this)}
+                                name={player.name}
+                                score={player.score}
+                                key={player.id} />
+                        )
+                    }.bind(this))}
+                </div>
             </div>
-        </div>
-    );
-}
-
-// Each keys in the propTypes object are the property the component can take (e.i title)
-// this is useful for document the compnent and help for debugging
-Application.propTypes = {
-    title: React.PropTypes.string,
-    players: React.PropTypes.arrayOf(React.PropTypes.shape({
-        name: React.PropTypes.string.isRequired,
-        score: React.PropTypes.number.isRequired,
-        id: React.PropTypes.number.isRequired
-    })).isRequired
-};
-
-Application.defaultProps = {
-    title: "Scoreboard"
-}
+        )
+    }
+})
 
 // ReactDOM.render is a function we use to render specific HTML tag into a selected element
-ReactDOM.render(<Application players={PLAYERS}/>,document.getElementById("container"));
+ReactDOM.render(<Application initialPlayers={PLAYERS}/>,document.getElementById("container"));
