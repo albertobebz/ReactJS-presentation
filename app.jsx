@@ -21,7 +21,43 @@ var PLAYERS = [
         score: 1,
         id: 3
     }
-]
+];
+
+var nextId = 4;
+
+var AddPlayerForm = React.createClass({
+
+    propTypes: {
+        onAdd: React.PropTypes.func.isRequired
+    },
+
+    getInitialState: function(){
+        return {
+            name: "",
+        };
+    },
+
+    onNameChange: function(e){
+        this.setState({name: e.target.value});
+    },
+
+    onSubmit: function(e){
+        e.preventDefault();
+        this.props.onAdd(this.state.name);
+        this.setState({name: ""});
+    },
+
+    render: function(){
+        return (
+            <div className="add-player-form">
+                <form onSubmit={this.onSubmit}>
+                    <input type="text" value={this.state.name} onChange={this.onNameChange}/>
+                    <input type="submit" value="Add player" />
+                </form>
+            </div>
+        );
+    }
+});
 
 function Stats(props) {
     var totalPlayers = props.players.length;
@@ -126,9 +162,19 @@ var Application = React.createClass({
     },
 
     onScoreChange: function(index, delta){
-        console.log("onScoreChange", index, delta);
         this.state.players[index].score += delta;
         this.setState(this.state);
+    },
+
+    onPlayerAdd: function(name){
+        console.log("player added:", name);
+        this.state.players.push({
+            name: name,
+            score: 0,
+            id: nextId
+        });
+        this.setState(this.state);
+        nextId += 1;
     },
 
     render: function(){
@@ -146,6 +192,7 @@ var Application = React.createClass({
                         )
                     }.bind(this))}
                 </div>
+                <AddPlayerForm onAdd={this.onPlayerAdd} />
             </div>
         )
     }
