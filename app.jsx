@@ -1,23 +1,22 @@
 // JSX is a extension of JavaScript language that allows us to use an XML style syntax to build our React.createElement calls
 // We need a compilere to transform JSX into JavaScript code, in this case we use Babel
 
-/////
 // we define a component and then this will be injected into the render function
-/////
+// a component is an element that represent a VIRTUAL DOM element
 
 var PLAYERS = [
     {
-        name: "jim",
+        name: "Bob Marley",
         score: 32,
         id: 1
     },
     {
-        name: "bill",
+        name: "Jimy Hendrix",
         score: 22,
         id: 2
     },
     {
-        name: "tim",
+        name: "David Bowie",
         score: 1,
         id: 3
     }
@@ -25,12 +24,14 @@ var PLAYERS = [
 
 var nextId = 4;
 
+// ADDPLAYERFORM is a COMPONENT CLASS --> this for adding state to our component
 var AddPlayerForm = React.createClass({
 
     propTypes: {
         onAdd: React.PropTypes.func.isRequired
     },
 
+    // this is a LOCAL COMPONENT STATE
     getInitialState: function(){
         return {
             name: "",
@@ -38,12 +39,14 @@ var AddPlayerForm = React.createClass({
     },
 
     onNameChange: function(e){
+        // this.setState fn update the state, every time the function is called the render method is fired
         this.setState({name: e.target.value});
     },
 
     onSubmit: function(e){
         e.preventDefault();
         this.props.onAdd(this.state.name);
+        // this.setState fn update the state, every time the function is called the render method is fired
         this.setState({name: ""});
     },
 
@@ -59,6 +62,7 @@ var AddPlayerForm = React.createClass({
     }
 });
 
+// STATS is a STATELESS FUNCTIONAL COMPONENT
 function Stats(props) {
     var totalPlayers = props.players.length;
     var totalPoints = props.players.reduce(function(total, player){
@@ -123,7 +127,8 @@ function Player(props) {
     return (
         <div className="player">
             <div className="player-name">
-                <p>{props.name}</p>
+                <a className="remove-player" onClick={props.onRemove}>&#x2718;</a>
+                {props.name}
             </div>
             <div className="player-score">
                 <Counter score={props.score} onChange={props.onScoreChange}/>
@@ -135,7 +140,8 @@ function Player(props) {
 Player.propTypes = {
     name: React.PropTypes.string.isRequired,
     score: React.PropTypes.number.isRequired,
-    onScoreChange: React.PropTypes.func.isRequired
+    onScoreChange: React.PropTypes.func.isRequired,
+    onRemove: React.PropTypes.func.isRequired
 };
 
 // APPLICATION is a COMPONENT CLASS --> this for adding state to our component
@@ -154,7 +160,8 @@ var Application = React.createClass({
             title: "Scoreboard"
         }
     },
-
+    // getInitialState is a method build in React where we can define our initial state
+    // the value we return from it will be out initial state
     getInitialState: function(){
         return {
             players: this.props.initialPlayers
@@ -163,18 +170,25 @@ var Application = React.createClass({
 
     onScoreChange: function(index, delta){
         this.state.players[index].score += delta;
+        // this.setState fn update the state, every time the function is called the render method is fired
         this.setState(this.state);
     },
 
     onPlayerAdd: function(name){
-        console.log("player added:", name);
         this.state.players.push({
             name: name,
             score: 0,
             id: nextId
         });
+        // this.setState fn update the state, every time the function is called the render method is fired
         this.setState(this.state);
         nextId += 1;
+    },
+
+    onRemovePlayer: function(index){
+        this.state.players.splice(index, 1);
+        // this.setState fn update the state, every time the function is called the render method is fired
+        this.setState(this.state);
     },
 
     render: function(){
@@ -186,6 +200,7 @@ var Application = React.createClass({
                         return (
                             <Player
                                 onScoreChange={function(delta) {this.onScoreChange(index, delta)}.bind(this)}
+                                onRemove={function() {this.onRemovePlayer(index)}.bind(this)}
                                 name={player.name}
                                 score={player.score}
                                 key={player.id} />
@@ -199,4 +214,5 @@ var Application = React.createClass({
 })
 
 // ReactDOM.render is a function we use to render specific HTML tag into a selected element
+// ReactDOM.render takes 2 arguments, the first is a VIRTUAL DOM element the second is a REAL DOM element where the VIRTUAL DOM will be placed
 ReactDOM.render(<Application initialPlayers={PLAYERS}/>,document.getElementById("container"));
